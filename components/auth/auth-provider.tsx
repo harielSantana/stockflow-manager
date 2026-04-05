@@ -1,0 +1,142 @@
+"use client"
+
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  type ReactNode,
+} from "react"
+import type { AuthState, LoginFormData, RegisterFormData, AuthResult } from "@/lib/types"
+import {
+  getApiToken,
+  setApiToken,
+  loginApi,
+  logoutApi,
+  registerApi,
+  getMeApi,
+  ApiError,
+} from "@/lib/api"
+
+interface AuthContextType extends AuthState {
+  login: (data: LoginFormData) => Promise<AuthResult>
+  logout: () => Promise<void>
+  register: (data: RegisterFormData) => Promise<AuthResult>
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [state, setState] = useState<AuthState>({
+    user: null,
+    isAuthenticated: false,
+    isLoading: true,
+  })
+
+  useEffect(() => {
+    let cancelled = false
+
+    ;(async () => {
+      if (!getApiToken()) {
+        if (!cancelled) {
+          setState({ user: null, isAuthenticated: false, isLoading: false })
+        }
+        return
+      }
+      try {
+        const user = await getMeApi()
+        if (!cancelled) {
+          setState({ user, isAuthenticated: true, isLoading: false })
+        }
+      } catch {
+        setApiToken(null)
+        if (!cancelled) {
+          setState({ user: null, isAuthenticated: false, isLoading: false })
+        }
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const login = useCallback(async (data: LoginFormData): Promise<AuthResult> => {
+    try {
+      const { user, accessToken } = await loginApi(data)
+      setApiToken(accessToken)
+      setState({
+        user,
+        isAuthenticated: true,
+        isLoading: false,
+      })
+      return { success: true, user }
+    } catch (e) {
+      const message =
+        e instanceof ApiError ? e.message : "Erro ao fazer login"
+      return { success: false, error: message }
+    }
+  }, [])
+
+  const logout = useCallback(async () => {
+    await logoutApi()
+    setApiToken(null)
+    setState({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+    })
+  }, [])
+
+  const register = useCallback(
+    async (data: RegisterFormData): Promise<AuthResult> => {
+      if (data.password !== data.confirmPassword) {
+        return { success: false, error: "As senhas nao coincidem" }
+      }
+      if (data.password.length < 6) {
+        return { success: false, error: "A senha deve ter pelo menos 6 caracteres" }
+      }
+      try {
+        const { user, accessToken } = await registerApi({
+          name: data.name,
+          email: data.email,
+          password: data.password,
+        })
+        setApiToken(accessToken)
+        setState({
+          user,
+          isAuthenticated: true,
+          isLoading: false,
+        })
+        return { success: true, user }
+      } catch (e) {
+        const message =
+          e instanceof ApiError ? e.message : "Erro ao cadastrar"
+        return { success: false, error: message }
+      }
+    },
+    []
+  )
+
+  return (
+    <AuthContext.Provider
+      value={{
+        ...state,
+        login,
+        logout,
+        register,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  )
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider")
+  }
+  return context
+}
