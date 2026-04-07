@@ -21,14 +21,23 @@ export function setApiToken(token: string | null): void {
   else localStorage.removeItem(TOKEN_KEY)
 }
 
+/** Sem http(s):// o fetch trata a string como path relativo ao site atual (ex.: Vercel + dominio da API). */
+function normalizeApiBaseUrl(raw: string): string {
+  const trimmed = raw.replace(/\/$/, "")
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+  const isLocal =
+    /^localhost(?::|$)/i.test(trimmed) || /^127\.0\.0\.1(?::|$)/.test(trimmed)
+  return `${isLocal ? "http" : "https"}://${trimmed}`
+}
+
 export function getApiBaseUrl(): string {
   const raw = process.env.NEXT_PUBLIC_API_URL?.trim()
   if (!raw) {
     throw new Error(
-      "Defina NEXT_PUBLIC_API_URL no .env (ex: http://localhost:3001)"
+      "Defina NEXT_PUBLIC_API_URL no .env (ex: https://api.exemplo.com ou http://localhost:3001)"
     )
   }
-  return raw.replace(/\/$/, "")
+  return normalizeApiBaseUrl(raw)
 }
 
 type RequestOptions = Omit<RequestInit, "body"> & {
