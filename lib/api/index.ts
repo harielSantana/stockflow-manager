@@ -1,4 +1,4 @@
-export { ApiError, getApiToken, setApiToken, getApiBaseUrl } from "./client"
+export { ApiError, getApiBaseUrl } from "./client"
 import { apiRequest } from "./client"
 import type {
   Category,
@@ -11,7 +11,6 @@ import type {
 
 export type AuthPayload = {
   user: SessionUser
-  accessToken: string
 }
 
 export async function registerApi(body: {
@@ -22,7 +21,6 @@ export async function registerApi(body: {
   return apiRequest<AuthPayload>("/auth/register", {
     method: "POST",
     body,
-    auth: false,
   })
 }
 
@@ -33,7 +31,6 @@ export async function loginApi(body: {
   return apiRequest<AuthPayload>("/auth/login", {
     method: "POST",
     body,
-    auth: false,
   })
 }
 

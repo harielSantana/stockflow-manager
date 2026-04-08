@@ -10,8 +10,6 @@ import {
 } from "react"
 import type { AuthState, LoginFormData, RegisterFormData, AuthResult } from "@/lib/types"
 import {
-  getApiToken,
-  setApiToken,
   loginApi,
   logoutApi,
   registerApi,
@@ -38,19 +36,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false
 
     ;(async () => {
-      if (!getApiToken()) {
-        if (!cancelled) {
-          setState({ user: null, isAuthenticated: false, isLoading: false })
-        }
-        return
-      }
       try {
         const user = await getMeApi()
         if (!cancelled) {
           setState({ user, isAuthenticated: true, isLoading: false })
         }
       } catch {
-        setApiToken(null)
         if (!cancelled) {
           setState({ user: null, isAuthenticated: false, isLoading: false })
         }
@@ -64,8 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (data: LoginFormData): Promise<AuthResult> => {
     try {
-      const { user, accessToken } = await loginApi(data)
-      setApiToken(accessToken)
+      const { user } = await loginApi(data)
       setState({
         user,
         isAuthenticated: true,
@@ -81,7 +71,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     await logoutApi()
-    setApiToken(null)
     setState({
       user: null,
       isAuthenticated: false,
@@ -98,12 +87,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, error: "A senha deve ter pelo menos 6 caracteres" }
       }
       try {
-        const { user, accessToken } = await registerApi({
+        const { user } = await registerApi({
           name: data.name,
           email: data.email,
           password: data.password,
         })
-        setApiToken(accessToken)
         setState({
           user,
           isAuthenticated: true,
