@@ -98,6 +98,7 @@ export function RegisterForm() {
                 <Input
                   id="password"
                   type="password"
+                  autoComplete="new-password"
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={(e) =>
@@ -114,6 +115,7 @@ export function RegisterForm() {
                 <Input
                   id="confirmPassword"
                   type="password"
+                  autoComplete="new-password"
                   placeholder="••••••••"
                   value={formData.confirmPassword}
                   onChange={(e) =>

@@ -81,6 +81,7 @@ export function LoginForm() {
                 <Input
                   id="password"
                   type="password"
+                  autoComplete="current-password"
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={(e) =>
