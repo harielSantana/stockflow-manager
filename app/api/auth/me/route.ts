@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { AUTH_COOKIE_NAME } from "@/lib/server/auth-cookie"
 import { fetchBackend } from "@/lib/server/backend-fetch"
+import { nextResponseFromBackendFailure } from "@/lib/server/backend-proxy-response"
 import { getOrCreateRequestId } from "@/lib/server/request-id"
 
 export async function GET(req: Request) {
@@ -22,6 +23,9 @@ export async function GET(req: Request) {
   })
 
   const text = await backendRes.text()
+  if (!backendRes.ok) {
+    return nextResponseFromBackendFailure(backendRes, text, requestId)
+  }
   return new NextResponse(text, {
     status: backendRes.status,
     headers: {

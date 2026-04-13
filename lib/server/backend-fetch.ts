@@ -1,9 +1,17 @@
 import "server-only"
 
+/**
+ * URL do backend chamada apenas nas Route Handlers (servidor).
+ * Prefira API_URL (nao vai para o bundle do cliente): na Vercel use a origem direta
+ * se o dominio publico estiver atras do Cloudflare com desafio a bots.
+ */
 export function getServerApiBaseUrl(): string {
-  const url = process.env.NEXT_PUBLIC_API_URL?.trim()
+  const url =
+    process.env.API_URL?.trim() || process.env.NEXT_PUBLIC_API_URL?.trim()
   if (!url) {
-    throw new Error("Defina NEXT_PUBLIC_API_URL no .env para o servidor Next (BFF).")
+    throw new Error(
+      "Defina API_URL (recomendado) ou NEXT_PUBLIC_API_URL para o BFF no servidor."
+    )
   }
   return url.replace(/\/$/, "")
 }

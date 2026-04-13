@@ -4,6 +4,7 @@ import {
   AUTH_COOKIE_NAME,
 } from "@/lib/server/auth-cookie"
 import { getServerApiBaseUrl } from "@/lib/server/backend-fetch"
+import { nextResponseFromBackendFailure } from "@/lib/server/backend-proxy-response"
 import { getOrCreateRequestId } from "@/lib/server/request-id"
 import {
   backendPathFromSegments,
@@ -54,6 +55,9 @@ async function proxy(req: NextRequest, segments: string[]) {
   })
 
   const resText = await backendRes.text()
+  if (!backendRes.ok) {
+    return nextResponseFromBackendFailure(backendRes, resText, requestId)
+  }
   const out = new NextResponse(resText, {
     status: backendRes.status,
     headers: { "x-request-id": requestId },

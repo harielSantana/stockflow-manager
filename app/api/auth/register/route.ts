@@ -4,6 +4,7 @@ import {
   accessTokenCookieOptions,
 } from "@/lib/server/auth-cookie"
 import { fetchBackend } from "@/lib/server/backend-fetch"
+import { nextResponseFromBackendFailure } from "@/lib/server/backend-proxy-response"
 import { getOrCreateRequestId } from "@/lib/server/request-id"
 
 type AuthResponse = {
@@ -36,14 +37,7 @@ export async function POST(req: Request) {
 
   const text = await backendRes.text()
   if (!backendRes.ok) {
-    return new NextResponse(text, {
-      status: backendRes.status,
-      headers: {
-        "content-type":
-          backendRes.headers.get("content-type") || "application/json",
-        "x-request-id": requestId,
-      },
-    })
+    return nextResponseFromBackendFailure(backendRes, text, requestId)
   }
 
   let data: AuthResponse
