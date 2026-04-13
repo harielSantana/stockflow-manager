@@ -1,5 +1,5 @@
-export { ApiError, getApiBaseUrl } from "./client"
-import { apiRequest } from "./client"
+export { ApiError, getApiBaseUrl, saveToken, clearToken, getToken } from "./client"
+import { apiRequest, saveToken, clearToken } from "./client"
 import type {
   Category,
   FixedCost,
@@ -13,25 +13,34 @@ export type AuthPayload = {
   user: SessionUser
 }
 
+type AuthResponse = {
+  user: SessionUser
+  accessToken: string
+}
+
 export async function registerApi(body: {
   name: string
   email: string
   password: string
 }): Promise<AuthPayload> {
-  return apiRequest<AuthPayload>("/auth/register", {
+  const data = await apiRequest<AuthResponse>("/auth/register", {
     method: "POST",
     body,
   })
+  saveToken(data.accessToken)
+  return { user: data.user }
 }
 
 export async function loginApi(body: {
   email: string
   password: string
 }): Promise<AuthPayload> {
-  return apiRequest<AuthPayload>("/auth/login", {
+  const data = await apiRequest<AuthResponse>("/auth/login", {
     method: "POST",
     body,
   })
+  saveToken(data.accessToken)
+  return { user: data.user }
 }
 
 export async function logoutApi(): Promise<void> {
@@ -39,6 +48,8 @@ export async function logoutApi(): Promise<void> {
     await apiRequest("/auth/logout", { method: "POST" })
   } catch {
     // Sessao stateless: ignorar falha de rede
+  } finally {
+    clearToken()
   }
 }
 

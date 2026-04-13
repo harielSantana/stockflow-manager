@@ -8,11 +8,29 @@ export class ApiError extends Error {
   }
 }
 
-/** Prefixo do BFF (mesma origem); a URL real da API fica só no servidor (`API_URL`). */
-const BFF_PREFIX = "/api/gestao"
+const TOKEN_KEY = "gestao_token"
+
+export function saveToken(token: string): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(TOKEN_KEY, token)
+  }
+}
+
+export function clearToken(): void {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem(TOKEN_KEY)
+  }
+}
+
+export function getToken(): string | null {
+  if (typeof window === "undefined") return null
+  return localStorage.getItem(TOKEN_KEY)
+}
 
 export function getApiBaseUrl(): string {
-  return BFF_PREFIX
+  const url = process.env.NEXT_PUBLIC_API_URL
+  if (!url) throw new Error("Defina NEXT_PUBLIC_API_URL no .env")
+  return url.replace(/\/$/, "")
 }
 
 type RequestOptions = Omit<RequestInit, "body"> & {
@@ -30,10 +48,13 @@ export async function apiRequest<T>(
   if (body !== undefined && !(body instanceof FormData)) {
     headers.set("Content-Type", "application/json")
   }
+  const token = getToken()
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`)
+  }
 
   const res = await fetch(`${base}${path}`, {
     ...rest,
-    credentials: "include",
     headers,
     body:
       body === undefined || body instanceof FormData
