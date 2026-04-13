@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useMemo } from "react"
 import { Header } from "@/components/dashboard/header"
 import { CashFlowSummary } from "@/components/financeiro/cash-flow-summary"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -19,14 +19,8 @@ import {
   getCurrentMonth,
   formatMonth,
   getLastMonths,
-  type FinancialData,
 } from "@/lib/calculations"
-import {
-  listProductsApi,
-  listStockEntriesApi,
-  listStockExitsApi,
-  listFixedCostsApi,
-} from "@/lib/api"
+import { useFinancialContext } from "@/hooks/api/use-financial-context"
 import type { MonthlyFinancial } from "@/lib/types"
 import {
   LineChart,
@@ -51,31 +45,9 @@ function formatCurrency(value: number): string {
 
 export default function FinanceiroPage() {
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth())
-  const [financialCtx, setFinancialCtx] = useState<FinancialData | null>(null)
+  const financialCtx = useFinancialContext()
 
   const months = useMemo(() => getLastMonths(12), [])
-
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const [products, entries, exits, fixedCosts] = await Promise.all([
-          listProductsApi(),
-          listStockEntriesApi(),
-          listStockExitsApi(),
-          listFixedCostsApi(),
-        ])
-        if (!cancelled) {
-          setFinancialCtx({ products, entries, exits, fixedCosts })
-        }
-      } catch {
-        if (!cancelled) setFinancialCtx(null)
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   const monthlyData = useMemo<MonthlyFinancial | null>(() => {
     if (!financialCtx) return null

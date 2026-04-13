@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useMemo } from "react"
 import Link from "next/link"
 import { Header } from "@/components/dashboard/header"
 import { MetricCard } from "@/components/dashboard/metric-card"
@@ -15,13 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  listProductsApi,
-  listCategoriesApi,
-  listStockEntriesApi,
-  listStockExitsApi,
-  listFixedCostsApi,
-} from "@/lib/api"
+import { useDashboardDatasets } from "@/hooks/api/use-dashboard-datasets"
 import {
   calculateTotalStockValue,
   calculateMonthlyFinancial,
@@ -59,44 +53,16 @@ function formatCurrency(value: number): string {
 }
 
 export default function DashboardPage() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [entries, setEntries] = useState<Awaited<
-    ReturnType<typeof listStockEntriesApi>
-  >>([])
-  const [exits, setExits] = useState<Awaited<
-    ReturnType<typeof listStockExitsApi>
-  >>([])
-  const [fixedCosts, setFixedCosts] = useState<FixedCost[]>([])
-  const [loadError, setLoadError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const [p, c, e, x, f] = await Promise.all([
-          listProductsApi(),
-          listCategoriesApi(),
-          listStockEntriesApi(),
-          listStockExitsApi(),
-          listFixedCostsApi(),
-        ])
-        if (!cancelled) {
-          setProducts(p)
-          setCategories(c)
-          setEntries(e)
-          setExits(x)
-          setFixedCosts(f)
-          setLoadError(null)
-        }
-      } catch {
-        if (!cancelled) setLoadError("Nao foi possivel carregar o dashboard.")
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  const {
+    products,
+    categories,
+    entries,
+    exits,
+    fixedCosts,
+    loadError,
+  } = useDashboardDatasets({
+    errorMessage: "Nao foi possivel carregar o dashboard.",
+  })
 
   const financialData = useMemo(
     () => ({

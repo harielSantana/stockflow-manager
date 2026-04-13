@@ -1,19 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { Header } from "@/components/dashboard/header"
 import { ProductForm } from "@/components/estoque/product-form"
-import { listCategoriesApi } from "@/lib/api"
-import type { Category } from "@/lib/types"
+import { useCategories } from "@/hooks/api/use-categories"
 
 export default function NovoProductPage() {
-  const [categories, setCategories] = useState<Category[]>([])
-
-  useEffect(() => {
-    listCategoriesApi()
-      .then(setCategories)
-      .catch(() => setCategories([]))
-  }, [])
+  const { categories } = useCategories()
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">

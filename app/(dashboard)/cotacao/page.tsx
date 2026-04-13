@@ -1,35 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { Header } from "@/components/dashboard/header"
 import { CotacaoSimulador } from "@/components/cotacao/cotacao-simulador"
-import { listProductsApi } from "@/lib/api"
-import type { Product } from "@/lib/types"
+import { useProducts } from "@/hooks/api/use-products"
 
 export default function CotacaoPage() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const list = await listProductsApi()
-        if (!cancelled) {
-          setProducts(list)
-          setError(null)
-        }
-      } catch {
-        if (!cancelled) {
-          setProducts([])
-          setError("Nao foi possivel carregar os produtos.")
-        }
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  const { products, error } = useProducts({
+    errorMessage: "Nao foi possivel carregar os produtos.",
+  })
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">

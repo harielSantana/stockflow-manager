@@ -1,5 +1,8 @@
-export { ApiError, getApiBaseUrl, saveToken, clearToken, getToken } from "./client"
-import { apiRequest, saveToken, clearToken } from "./client"
+import { apiRequest } from "./client"
+import { BFF_AUTH_PATHS } from "./routes"
+
+export { ApiError } from "./client"
+export { BFF_AUTH_PATHS } from "./routes"
 import type {
   Category,
   FixedCost,
@@ -13,48 +16,39 @@ export type AuthPayload = {
   user: SessionUser
 }
 
-type AuthResponse = {
-  user: SessionUser
-  accessToken: string
-}
-
 export async function registerApi(body: {
   name: string
   email: string
   password: string
 }): Promise<AuthPayload> {
-  const data = await apiRequest<AuthResponse>("/auth/register", {
+  return apiRequest<AuthPayload>(BFF_AUTH_PATHS.register, {
     method: "POST",
     body,
   })
-  saveToken(data.accessToken)
-  return { user: data.user }
 }
 
 export async function loginApi(body: {
   email: string
   password: string
 }): Promise<AuthPayload> {
-  const data = await apiRequest<AuthResponse>("/auth/login", {
+  return apiRequest<AuthPayload>(BFF_AUTH_PATHS.login, {
     method: "POST",
     body,
   })
-  saveToken(data.accessToken)
-  return { user: data.user }
 }
 
 export async function logoutApi(): Promise<void> {
   try {
-    await apiRequest("/auth/logout", { method: "POST" })
+    await apiRequest<Record<string, never>>(BFF_AUTH_PATHS.logout, {
+      method: "POST",
+    })
   } catch {
     // Sessao stateless: ignorar falha de rede
-  } finally {
-    clearToken()
   }
 }
 
 export async function getMeApi(): Promise<SessionUser> {
-  return apiRequest<SessionUser>("/auth/me", { method: "GET" })
+  return apiRequest<SessionUser>(BFF_AUTH_PATHS.me, { method: "GET" })
 }
 
 export async function listCategoriesApi(): Promise<Category[]> {

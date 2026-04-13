@@ -1,30 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Header } from "@/components/dashboard/header"
 import { ProductTable } from "@/components/estoque/product-table"
 import { Button } from "@/components/ui/button"
-import { listProductsApi, listCategoriesApi } from "@/lib/api"
-import type { Product, Category } from "@/lib/types"
+import { useEstoquePageData } from "@/hooks/api/use-estoque-page-data"
 import { Plus } from "lucide-react"
 
 export default function EstoquePage() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-
-  const loadData = async () => {
-    const [p, c] = await Promise.all([listProductsApi(), listCategoriesApi()])
-    setProducts(p)
-    setCategories(c)
-  }
-
-  useEffect(() => {
-    loadData().catch(() => {
-      setProducts([])
-      setCategories([])
-    })
-  }, [])
+  const { products, categories, refresh } = useEstoquePageData()
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -51,7 +35,7 @@ export default function EstoquePage() {
         <ProductTable
           products={products}
           categories={categories}
-          onRefresh={loadData}
+          onRefresh={refresh}
         />
       </div>
     </div>

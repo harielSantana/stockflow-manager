@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Header } from "@/components/dashboard/header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -32,18 +32,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import {
-  listCategoriesApi,
-  listProductsApi,
   createCategoryApi,
   updateCategoryApi,
   deleteCategoryApi,
 } from "@/lib/api"
+import { useCategoriasPageData } from "@/hooks/api/use-categorias-page-data"
 import type { Category, Product } from "@/lib/types"
 import { Plus, Pencil, Trash2 } from "lucide-react"
 
 export default function CategoriasPage() {
-  const [categories, setCategories] = useState<Category[]>([])
-  const [products, setProducts] = useState<Product[]>([])
+  const { categories, products, refresh } = useCategoriasPageData()
   const [editCategory, setEditCategory] = useState<Category | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -51,16 +49,6 @@ export default function CategoriasPage() {
     name: "",
     description: "",
   })
-
-  const loadCategories = async () => {
-    const [c, p] = await Promise.all([listCategoriesApi(), listProductsApi()])
-    setCategories(c)
-    setProducts(p)
-  }
-
-  useEffect(() => {
-    loadCategories().catch(() => setCategories([]))
-  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -79,7 +67,7 @@ export default function CategoriasPage() {
     setDialogOpen(false)
     setEditCategory(null)
     setFormData({ name: "", description: "" })
-    await loadCategories()
+    await refresh()
   }
 
   const handleEdit = (category: Category) => {
@@ -95,7 +83,7 @@ export default function CategoriasPage() {
     if (deleteId) {
       await deleteCategoryApi(deleteId)
       setDeleteId(null)
-      await loadCategories()
+      await refresh()
     }
   }
 

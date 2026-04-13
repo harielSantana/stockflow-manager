@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useMemo } from "react"
 import { Header } from "@/components/dashboard/header"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -20,14 +20,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  exportBackupApi,
-  listProductsApi,
-  listStockEntriesApi,
-  listStockExitsApi,
-  listCategoriesApi,
-  listFixedCostsApi,
-} from "@/lib/api"
+import { exportBackupApi } from "@/lib/api"
+import { useDashboardDatasets } from "@/hooks/api/use-dashboard-datasets"
 import {
   calculateFinancialHistory,
   getLastMonths,
@@ -52,46 +46,10 @@ function formatCurrency(value: number): string {
 
 export default function RelatoriosPage() {
   const [selectedMonth, setSelectedMonth] = useState(getLastMonths(1)[0])
-  const [products, setProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [entries, setEntries] = useState<StockEntry[]>([])
-  const [exits, setExits] = useState<StockExit[]>([])
-  const [fixedCosts, setFixedCosts] = useState<FixedCost[]>([])
+  const { products, categories, entries, exits, fixedCosts } =
+    useDashboardDatasets()
 
   const months = useMemo(() => getLastMonths(12), [])
-
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const [p, c, e, x, f] = await Promise.all([
-          listProductsApi(),
-          listCategoriesApi(),
-          listStockEntriesApi(),
-          listStockExitsApi(),
-          listFixedCostsApi(),
-        ])
-        if (!cancelled) {
-          setProducts(p)
-          setCategories(c)
-          setEntries(e)
-          setExits(x)
-          setFixedCosts(f)
-        }
-      } catch {
-        if (!cancelled) {
-          setProducts([])
-          setCategories([])
-          setEntries([])
-          setExits([])
-          setFixedCosts([])
-        }
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   const financialHistory = useMemo(
     () =>
