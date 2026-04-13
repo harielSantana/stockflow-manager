@@ -8,53 +8,33 @@ export class ApiError extends Error {
   }
 }
 
-const TOKEN_KEY = "gestao_token"
-
-export function saveToken(token: string): void {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(TOKEN_KEY, token)
-  }
-}
-
-export function clearToken(): void {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem(TOKEN_KEY)
-  }
-}
-
-export function getToken(): string | null {
-  if (typeof window === "undefined") return null
-  return localStorage.getItem(TOKEN_KEY)
-}
-
-export function getApiBaseUrl(): string {
-  const url = process.env.NEXT_PUBLIC_API_URL
-  if (!url) throw new Error("Defina NEXT_PUBLIC_API_URL no .env")
-  return url.replace(/\/$/, "")
-}
-
 type RequestOptions = Omit<RequestInit, "body"> & {
   body?: unknown
+}
+
+function resolveUrl(path: string): string {
+  if (path.startsWith("/api/")) {
+    return path
+  }
+  const p = path.startsWith("/") ? path : `/${path}`
+  return `/api/gateway${p}`
 }
 
 export async function apiRequest<T>(
   path: string,
   options: RequestOptions = {}
 ): Promise<T> {
-  const base = getApiBaseUrl()
+  const url = resolveUrl(path)
   const { body, headers: initHeaders, ...rest } = options
 
   const headers = new Headers(initHeaders)
   if (body !== undefined && !(body instanceof FormData)) {
     headers.set("Content-Type", "application/json")
   }
-  const token = getToken()
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`)
-  }
 
-  const res = await fetch(`${base}${path}`, {
+  const res = await fetch(url, {
     ...rest,
+    credentials: "include",
     headers,
     body:
       body === undefined || body instanceof FormData

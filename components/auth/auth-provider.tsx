@@ -64,7 +64,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { success: true, user }
     } catch (e) {
       const message =
-        e instanceof ApiError ? e.message : "Erro ao fazer login"
+        e instanceof ApiError
+          ? e.message
+          : e instanceof Error
+            ? e.message
+            : "Erro ao fazer login"
       return { success: false, error: message }
     }
   }, [])
@@ -100,7 +104,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: true, user }
       } catch (e) {
         const message =
-          e instanceof ApiError ? e.message : "Erro ao cadastrar"
+          e instanceof ApiError
+            ? e.message
+            : e instanceof Error
+              ? e.message
+              : "Erro ao cadastrar"
         return { success: false, error: message }
       }
     },
