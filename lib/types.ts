@@ -1,9 +1,16 @@
 // Usuario
+export type UserRole = "ADMIN" | "USER"
+export type UserPermission = "CAN_DELETE_MANUAL_RECORDS"
+
 export interface User {
   id: string
   name: string
   email: string
   passwordHash: string
+  role: UserRole
+  permissions: UserPermission[]
+  subscriptionActive: boolean
+  subscriptionExpiresAt: string | null
   createdAt: string
 }
 
@@ -156,6 +163,31 @@ export interface AuthResult {
   success: boolean
   user?: SessionUser
   error?: string
+}
+
+export interface AdminMetrics {
+  totalUsers: number
+  adminUsers: number
+  activeSubscriptions: number
+  inactiveOrExpiredSubscriptions: number
+  subscriptionsExpiringIn7Days: number
+  newUsersThisMonth: number
+  newUsersPreviousMonth: number
+}
+
+export interface AdminAuditLog {
+  id: string
+  actorId: string
+  actorName: string
+  targetUserId: string
+  targetUserName: string
+  targetUserEmail: string
+  changes: Array<{
+    field: string
+    previous: string | boolean | null
+    next: string | boolean | null
+  }>
+  createdAt: string
 }
 
 export interface LoginFormData {

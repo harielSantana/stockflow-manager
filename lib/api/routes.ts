@@ -43,6 +43,22 @@ export function isGatewayPathAllowed(segments: string[], method: string): boolea
     )
   }
 
+  if (a === "admin") {
+    if (segments.length === 2 && b === "metrics") {
+      return method === "GET"
+    }
+    if (segments.length === 2 && b === "audit-logs") {
+      return method === "GET"
+    }
+    if (segments.length === 2 && b === "users") {
+      return method === "GET"
+    }
+    if (segments.length === 3 && b === "users") {
+      return method === "PATCH"
+    }
+    return false
+  }
+
   if (!RESOURCE_ROOTS.has(a)) return false
 
   if (segments.length === 1) {
