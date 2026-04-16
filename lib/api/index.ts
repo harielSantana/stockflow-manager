@@ -4,9 +4,13 @@ import { BFF_AUTH_PATHS } from "./routes"
 export { ApiError } from "./client"
 export { BFF_AUTH_PATHS } from "./routes"
 import type {
+  AdminAuditLog,
+  AdminMetrics,
   Category,
   FixedCost,
   Product,
+  UserPermission,
+  UserRole,
   SessionUser,
   StockEntry,
   StockExit,
@@ -236,4 +240,31 @@ export type BackupPayload = {
 
 export async function exportBackupApi(): Promise<BackupPayload> {
   return apiRequest<BackupPayload>("/export/backup", { method: "GET" })
+}
+
+export async function listAdminUsersApi(): Promise<SessionUser[]> {
+  return apiRequest<SessionUser[]>("/admin/users", { method: "GET" })
+}
+
+export async function listAdminMetricsApi(): Promise<AdminMetrics> {
+  return apiRequest<AdminMetrics>("/admin/metrics", { method: "GET" })
+}
+
+export async function listAdminAuditLogsApi(): Promise<AdminAuditLog[]> {
+  return apiRequest<AdminAuditLog[]>("/admin/audit-logs", { method: "GET" })
+}
+
+export async function updateAdminUserApi(
+  id: string,
+  body: {
+    role?: UserRole
+    permissions?: UserPermission[]
+    subscriptionActive?: boolean
+    subscriptionExpiresAt?: string | null
+  }
+): Promise<SessionUser> {
+  return apiRequest<SessionUser>(`/admin/users/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body,
+  })
 }

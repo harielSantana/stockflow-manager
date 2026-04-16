@@ -11,9 +11,14 @@ import {
   DollarSign,
   FolderOpen,
   FileBarChart,
+  Shield,
+  Users,
+  CreditCard,
+  KeyRound,
+  Settings,
+  ScrollText,
   LogOut,
   Menu,
-  X,
   Package2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -21,7 +26,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useState } from "react"
 import { useAuth } from "@/components/auth/auth-provider"
 
-const navigation = [
+const userNavigation = [
   {
     name: "Dashboard",
     href: "/",
@@ -59,9 +64,43 @@ const navigation = [
   },
 ]
 
+const adminNavigation = [
+  {
+    name: "Painel Admin",
+    href: "/admin",
+    icon: Shield,
+  },
+  {
+    name: "Usuarios",
+    href: "/admin/usuarios",
+    icon: Users,
+  },
+  {
+    name: "Assinaturas",
+    href: "/admin/assinaturas",
+    icon: CreditCard,
+  },
+  {
+    name: "Permissoes",
+    href: "/admin/permissoes",
+    icon: KeyRound,
+  },
+  {
+    name: "Logs",
+    href: "/admin/logs",
+    icon: ScrollText,
+  },
+  {
+    name: "Configuracoes",
+    href: "/admin/configuracoes",
+    icon: Settings,
+  },
+]
+
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname()
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
+  const navigation = user?.role === "ADMIN" ? adminNavigation : userNavigation
 
   return (
     <div className="flex h-full flex-col">
